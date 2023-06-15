@@ -19,7 +19,7 @@ module NotEmpty.String exposing
 @docs String, fromString, toString, length, reverse, repeat, replace
 
 # Building and Splitting
-@docs append, concat, split, join, words, lines
+@docs append, appendString, appendToString, concat, split, join, words, lines
 
 # Get Substrings
 @docs slice, left, right, dropLeft, dropRight
@@ -34,7 +34,7 @@ module NotEmpty.String exposing
 @docs toFloat, fromFloat
 
 # Char Conversions
-@docs fromChar, cons, uncons, head, tail
+@docs fromChar, cons, consString, uncons, head, tail
 
 # List Conversions
 @docs toList, fromList
