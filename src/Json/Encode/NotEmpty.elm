@@ -1,10 +1,10 @@
-module Json.Encode.NotEmpty exposing (list, array, dict, set)
+module Json.Encode.NotEmpty exposing (list, array, dict, set, string)
 
 {-|
 
 Functions for encoding not empty collections into JSON values
 
-@docs list, array, set, dict
+@docs list, array, set, dict, string
 -}
 
 import NotEmpty
@@ -12,6 +12,7 @@ import NotEmpty.List
 import NotEmpty.Array
 import NotEmpty.Dict
 import NotEmpty.Set
+import NotEmpty.String
 
 import Json.Encode as E exposing (Value)
 
@@ -38,4 +39,10 @@ set itemEncoder set_ =
 dict : ( comparable -> String ) -> ( value -> Value ) -> NotEmpty.Dict comparable value -> Value
 dict keyEncoder valueEncoder dict_ =
   E.dict keyEncoder valueEncoder ( NotEmpty.Dict.toDict dict_ )
+
+
+{-| Turn a [`NotEmpty.String`](NotEmpty.String#String) into a JSON array. -}
+string : NotEmpty.String -> Value
+string str =
+  E.string ( NotEmpty.String.toString str )
 

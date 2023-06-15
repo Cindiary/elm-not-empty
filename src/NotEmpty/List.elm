@@ -2,10 +2,10 @@ module NotEmpty.List exposing
   ( List, PartitionResult(..)
   , singleton, repeat, range, withHead
   , fromList, toList
-  , map, indexedMap, foldl, foldr, filter, filterMap, partition
+  , map, indexedMap, foldl, foldr, foldl1, foldr1, filter, filterMap, partition
   , head, last, tail, take, drop, unzip
   , hasTail, length, reverse, member, all, any, maximum, minimum, sum, product
-  , cons, unCons, append, appendList, concat, concatMap, intersperse, map2, map3, map4, map5
+  , cons, unCons, append, appendList, appendToList, concat, concatMap, intersperse, map2, map3, map4, map5
   , sort, sortBy, sortWith
   )
 
@@ -23,7 +23,7 @@ module NotEmpty.List exposing
 
 # New functions
 
-@docs unCons, last, hasTail, appendList
+@docs unCons, last, hasTail, appendList, appendToList
 
 # Modified functions
 
@@ -37,7 +37,7 @@ module NotEmpty.List exposing
 
 @docs length, reverse, member, all, any, sum, product
 
-@docs map, indexedMap, foldl, foldr
+@docs map, indexedMap, foldl, foldr, foldl1, foldr1
 
 @docs append, concat, concatMap, intersperse, unzip
 
@@ -47,7 +47,7 @@ module NotEmpty.List exposing
 
 -}
 
-import Internal.CoreList exposing(CoreList)
+import Internal.CoreTypes exposing(CoreList)
 
 
 {-| Not empty version of `List` -}
@@ -178,6 +178,37 @@ foldl func acc ( first, list ) =
 foldr : ( a -> b -> b ) -> b -> List a -> b
 foldr func acc ( first, list ) =
   func first ( List.foldr func acc list )
+
+
+{-| Same as `List.foldl` but instead of supplying a start value you provide a function that produces the start value based on the first element
+
+  foldl1 (+) negate ( withHead 1 [ 2, 3 ] ) == 4
+  foldl1 (::) singleton ( withHead 1 [ 2, 3 ] ) == withHead 3 [ 2, 1 ]
+-}
+foldl1 : ( a -> acc -> acc ) -> ( a -> acc ) -> List a -> acc
+foldl1 func init ( first, list ) =
+  List.foldl func ( init first ) list
+
+
+{-| Same as `List.foldl` but instead of supplying a start value you provide a function that produces the start value based on the last element
+
+  foldr1 (+) negate ( withHead 1 [ 2, 3 ] ) == 0
+  foldr1 (::) singleton ( withHead 1 [ 2, 3 ] ) == withHead 1 [ 2, 3 ]
+
+-}
+foldr1 : ( a -> acc -> acc ) -> ( a -> acc ) -> List a -> acc
+foldr1 func init ( first, list ) =
+  foldr1Helper func init first list
+
+
+foldr1Helper : ( a -> acc -> acc ) -> ( a -> acc ) -> a -> CoreList a -> acc
+foldr1Helper func init head_ list =
+  case list of
+    item :: ls ->
+      func head_ ( foldr1Helper func init item ls )
+    
+    [] ->
+      init head_
 
 
 {-| Same as `List.filter` but will return Nothing if no elements satisfy the test
@@ -371,6 +402,23 @@ append ( first1, list1 ) ( first2, list2 ) =
 appendList : List a -> CoreList a -> List a
 appendList ( first, list1 ) list2 =
   ( first, list1 ++ list2 )
+
+
+{-| Appends a not empty list to a regular list
+
+    appendToList [ 1, 2 ] ( singleton 3 ) == withHead 1 [ 2, 3 ]
+    appendToList [ 1, 2, 3 ] ( withHead 4 [ 5 ] ) == withHead 1 [ 2, 3, 4, 5 ]
+    appendToList [] ( withHead 1 [ 2, 3 ] ) == withHead 1 [ 2, 3 ]
+
+-}
+appendToList : CoreList a -> List a -> List a
+appendToList list1 list2 =
+  case list1 of
+    first :: ls ->
+      ( first, ls ++ toList list2 )
+    
+    [] ->
+      list2
 
 
 {-| Same as `List.concat` -}

@@ -1,4 +1,4 @@
-module NotEmpty exposing (List, Array, Set, Dict)
+module NotEmpty exposing (List, Array, Set, Dict, String)
 
 {-|
 Module with aliases for the different collection types so you can type
@@ -8,7 +8,7 @@ instead of
 
     foo : NotEmpty.List.List Int
 
-@docs List, Array, Dict, Set
+@docs List, Array, Dict, Set, String
 
 -}
 
@@ -16,6 +16,7 @@ import NotEmpty.List
 import NotEmpty.Array
 import NotEmpty.Dict
 import NotEmpty.Set
+import NotEmpty.String
 
 {-| Alias for [`NotEmpty.List.List`](NotEmpty.List#List) -}
 type alias List a =
@@ -35,3 +36,8 @@ type alias Dict key value =
 {-| Alias for [`NotEmpty.Set.Set`](NotEmpty.Set#Set) -}
 type alias Set a =
   NotEmpty.Set.Set a
+
+
+{-| Alias for [`NotEmpty.String.String`](NotEmpty.String#String) -}
+type alias String =
+  NotEmpty.String.String

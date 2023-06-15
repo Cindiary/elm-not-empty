@@ -1,10 +1,10 @@
-module Json.Decode.NotEmpty exposing (list, array, dict, set)
+module Json.Decode.NotEmpty exposing (list, array, dict, set, string)
 
 {-|
 
 Functions for encoding not empty collections into JSON values
 
-@docs list, array, set, dict
+@docs list, array, dict, set, string
 -}
 
 
@@ -15,6 +15,7 @@ import NotEmpty.Dict
 import NotEmpty.Set
 
 import Json.Decode as D exposing (Decoder)
+import NotEmpty.String
 
 
 {-| Decode a JSON array into a [`NotEmpty.List`](NotEmpty.List#List)
@@ -30,13 +31,7 @@ list itemDecoder =
 {-| Decode a JSON array into a [`NotEmpty.Array`](NotEmpty.Array#Array)-}
 array : Decoder item -> Decoder ( NotEmpty.Array item )
 array itemDecoder =
-  notEmptyDecoder NotEmpty.Array.fromArray ( D.array itemDecoder )
-
-
-{-| Decode a JSON array into a [`NotEmpty.Set.Set`](NotEmpty.Set#Set)-}
-set : Decoder comparable -> Decoder ( NotEmpty.Set comparable )
-set itemDecoder =
-  D.map NotEmpty.Set.fromList ( list itemDecoder )
+  notEmptyDecoder NotEmpty.Array.fromArray ( D.array itemDecoder ) "expected at least 1 element"
 
 
 {-| Decode a JSON object into a [`NotEmpty.Dict`](NotEmpty.Dict#Dict)
@@ -50,11 +45,23 @@ set itemDecoder =
 -}
 dict : Decoder value -> Decoder ( NotEmpty.Dict String value )
 dict itemDecoder =
-  notEmptyDecoder NotEmpty.Dict.fromDict ( D.dict itemDecoder )
+  notEmptyDecoder NotEmpty.Dict.fromDict ( D.dict itemDecoder ) "expected at least 1 field"
 
 
-notEmptyDecoder : ( collection -> Maybe notEmptyCollection ) -> Decoder collection -> Decoder notEmptyCollection
-notEmptyDecoder getNotEmpty decoder =
+{-| Decode a JSON array into a [`NotEmpty.Set.Set`](NotEmpty.Set#Set) -}
+set : Decoder comparable -> Decoder ( NotEmpty.Set comparable )
+set itemDecoder =
+  D.map NotEmpty.Set.fromList ( list itemDecoder )
+
+
+{-| Decode a JSON string into a [`NotEmpty.String.String`](NotEmpty.String#String) -}
+string : Decoder NotEmpty.String
+string =
+  notEmptyDecoder NotEmpty.String.fromString D.string "String is empty"
+
+
+notEmptyDecoder : ( collection -> Maybe notEmptyCollection ) -> Decoder collection -> String -> Decoder notEmptyCollection
+notEmptyDecoder getNotEmpty decoder failMessage =
   let
     fromCollection collection =
       case getNotEmpty collection of
@@ -62,7 +69,7 @@ notEmptyDecoder getNotEmpty decoder =
           D.succeed notEmpty
         
         Nothing ->
-          D.fail "at least 1 element"
+          D.fail failMessage
   in
   D.andThen fromCollection decoder
 
